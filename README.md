@@ -172,18 +172,6 @@ This ensures all four MySQL tables arrive together before the Python script is i
 
 ---
 
-## Authors
-
-**Sadaram Bhanuja Sripadini · Dheeraj D · Korada Chandana Priya · Sravani Reddy**  
-B.Tech (CSE) — GITAM University, Visakhapatnam
-
-Internship at **Research Centre Imarat (RCI), DRDO, Hyderabad**  
-Under the guidance of **Raj Dev Gangwar, Scientist-B**  
-Certified by **Dr. Santanu Chatterjee, Scientist-F**, Directorate of IT  
-*May – June 2026*
-
----
-
 ## License
 
 This project is open-source and intended for educational and research purposes.
