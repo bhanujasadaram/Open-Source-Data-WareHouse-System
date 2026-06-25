@@ -1,0 +1,68 @@
+services:
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    container_name: clickhouse
+    ports:
+      - "8123:8123"   # HTTP interface (used by Superset & clickhouse-connect)
+      - "9000:9000"   # Native TCP interface (used by clickhouse-client)
+    environment:
+      CLICKHOUSE_DB:       analytics
+      CLICKHOUSE_USER:     admin
+      CLICKHOUSE_PASSWORD: "${CLICKHOUSE_PASSWORD:-Admin123456!}"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    restart: unless-stopped
+
+  nifi:
+    image: apache/nifi:2.3.0
+    container_name: nifi
+    ports:
+      - "8443:8443"
+    environment:
+      SINGLE_USER_CREDENTIALS_USERNAME: admin
+      SINGLE_USER_CREDENTIALS_PASSWORD: "${NIFI_PASSWORD:-Admin123456!}"
+    volumes:
+      - nifi_data:/opt/nifi/nifi-current/data
+      # Mount your local scripts and JDBC drivers — adjust paths for your OS
+      # Windows example:
+      #   - C:/warehouse/scripts:/opt/nifi/custom-scripts
+      #   - C:/warehouse/jdbc/clickhouse-jdbc-0.6.3-all.jar:/opt/nifi/nifi-current/lib/clickhouse-jdbc-0.6.3-all.jar
+      #   - C:/warehouse/jdbc/mysql-connector-j-9.7.0.jar:/opt/nifi/nifi-current/lib/mysql-connector-j-9.7.0.jar
+      # Linux/Mac example:
+      #   - ./scripts:/opt/nifi/custom-scripts
+    restart: unless-stopped
+    depends_on:
+      - clickhouse
+
+  superset:
+    build:
+      context: .
+      dockerfile: Dockerfile.superset
+    container_name: superset
+    ports:
+      - "8089:8088"
+    environment:
+      SUPERSET_SECRET_KEY: "${SUPERSET_SECRET_KEY:-supersecretkey}"
+    volumes:
+      - superset_home:/app/superset_home
+    depends_on:
+      - clickhouse
+    restart: unless-stopped
+    command: >
+      /bin/sh -c "
+      superset db upgrade &&
+      superset fab create-admin
+        --username admin
+        --firstname Superset
+        --lastname Admin
+        --email admin@example.com
+        --password admin || true &&
+      superset init &&
+      superset run -h 0.0.0.0 -p 8088
+      "
+
+volumes:
+  clickhouse_data:
+  nifi_data:
+  superset_home:
