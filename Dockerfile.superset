@@ -1,0 +1,8 @@
+FROM apache/superset:latest
+
+USER root
+
+# Install ClickHouse connect driver so Superset can talk to ClickHouse
+RUN pip install clickhouse-connect --no-cache-dir
+
+USER superset
